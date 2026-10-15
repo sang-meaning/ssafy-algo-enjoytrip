@@ -1,0 +1,30 @@
+# 빌드 결과물
+bin/
+out/
+target/
+build/
+*.class
+
+# 로컬 설정 파일 (API 키, DB 비밀번호가 들어감)
+config/app.properties
+
+# 라이브러리 jar는 README 안내대로 받아서 lib/ 에 둔다
+lib/*.jar
+
+# IDE
+.metadata/
+.recommenders/
+.idea/
+*.iml
+.vscode/*
+!.vscode/settings.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 로그, 임시 파일
+*.log
+logs/
+*.tmp

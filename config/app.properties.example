@@ -1,0 +1,26 @@
+# 이 파일을 같은 폴더에 app.properties 로 복사한 뒤 값을 채운다.
+# app.properties 는 .gitignore 에 들어 있어서 커밋되지 않는다.
+
+# 웹 서버
+server.port=8080
+
+# MySQL
+db.url=jdbc:mysql://localhost:3306/enjoytrip?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&rewriteBatchedStatements=true
+db.user=ssafy
+db.password=ssafy
+
+# 공공데이터포털 (관광정보, 관광사진, 출몰시각 모두 같은 키를 쓴다. 서비스별 활용신청은 따로 해야 함)
+datagokr.key=
+tour.api.base=https://apis.data.go.kr/B551011/KorService2
+photo.api.base=https://apis.data.go.kr/B551011/PhotoGalleryService1
+riseset.api.base=https://apis.data.go.kr/B090041/openapi/service/RiseSetInfoService
+
+# 카카오 (지도 표시용 JavaScript 키, 길찾기용 REST 키)
+kakao.js.key=
+kakao.rest.key=
+
+# OpenWeatherMap
+openweather.key=
+
+# 경로 가중치 방식: straight(직선거리) / kakao(카카오 길찾기, 키 발급 후 사용)
+route.distance.provider=straight

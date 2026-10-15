@@ -1,0 +1,6 @@
+{
+  "java.project.sourcePaths": ["src", "test"],
+  "java.project.outputPath": "bin",
+  "java.project.referencedLibraries": ["lib/**/*.jar"],
+  "files.encoding": "utf8"
+}
