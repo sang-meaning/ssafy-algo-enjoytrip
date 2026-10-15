@@ -6,12 +6,18 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+import com.ssafy.enjoytrip.algo.route.DistanceProvider;
+import com.ssafy.enjoytrip.algo.route.DistanceProviders;
 import com.ssafy.enjoytrip.config.AppConfig;
 import com.ssafy.enjoytrip.dao.AttractionDao;
+import com.ssafy.enjoytrip.dao.PlanDao;
 import com.ssafy.enjoytrip.dao.RegionDao;
 import com.ssafy.enjoytrip.external.TourApiClient;
 import com.ssafy.enjoytrip.service.AttractionService;
+import com.ssafy.enjoytrip.service.PlanService;
+import com.ssafy.enjoytrip.service.RouteService;
 import com.ssafy.enjoytrip.web.AttractionApi;
+import com.ssafy.enjoytrip.web.RouteApi;
 import com.ssafy.enjoytrip.web.Router;
 import com.ssafy.enjoytrip.web.StaticFileHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -35,9 +41,14 @@ public class Main {
         System.out.printf("관광지 %d건 로드, 인덱스 구축 %dms%n",
                 attractionService.size(), System.currentTimeMillis() - t0);
 
+        DistanceProvider distance = DistanceProviders.of(config.get("route.distance.provider", "straight"));
+        RouteService routeService = new RouteService(attractionService, distance);
+        PlanService planService = new PlanService(new PlanDao(), attractionService);
+
         Router api = new Router();
         api.get("/api/config", req -> clientConfig(config));
         new AttractionApi(attractionService).register(api);
+        new RouteApi(routeService, planService).register(api);
 
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         server.createContext("/api/", api);
