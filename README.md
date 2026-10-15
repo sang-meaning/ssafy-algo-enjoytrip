@@ -15,7 +15,11 @@
    - 파일 이름을 바꾸지 않는다. (`.classpath` 가 이 이름을 참조함)
 2. `config/app.properties.example` 을 `config/app.properties` 로 복사하고 DB 계정과 API 키를 채운다.
 3. STS에서 `File > Import > Existing Projects into Workspace` 로 이 폴더를 연다.
-4. `com.ssafy.enjoytrip.Main` 을 실행한다.
+4. MySQL Workbench 에서 `sql/schema.sql` 을 실행한다.
+5. `com.ssafy.enjoytrip.external.DataLoader` 를 실행해서 TourAPI 데이터를 DB 에 넣는다.
+   - 약 5만 건, API 호출 60회 정도, 2~3분 걸린다.
+   - 개발계정은 하루 1,000건 제한이 있으니 여러 번 돌리지 않는다. 다시 돌려도 중복 없이 덮어쓴다.
+6. `com.ssafy.enjoytrip.Main` 을 실행한다.
 
 ## 폴더 구조
 
