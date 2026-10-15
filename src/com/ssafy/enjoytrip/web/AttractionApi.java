@@ -20,6 +20,7 @@ import com.ssafy.enjoytrip.service.AttractionService;
  *  GET /api/attractions/search?q=&types=&regnCd=&limit=   이름 검색
  *  GET /api/attractions/bounds?swLat=&swLng=&neLat=&neLng=&types=&limit=   지도 영역
  *  GET /api/attractions/nearby?lat=&lng=&radius=&types=&limit=   주변 (가까운 순)
+ *  GET /api/attractions?ids=1,2,3               여러 건 기본 정보
  *  GET /api/attractions/{contentId}             상세
  */
 public class AttractionApi {
@@ -45,6 +46,7 @@ public class AttractionApi {
                         req.doubleParam("neLat"), req.doubleParam("neLng"),
                         req.intSetParam("types"), clamp(req.intParam("limit", 300), MAX_LIMIT)));
         router.get("/api/attractions/nearby", req -> nearby(req));
+        router.get("/api/attractions", req -> byIds(req));
         router.get("/api/attractions/{contentId}", req -> service.detail(req.pathInt("contentId")));
     }
 
@@ -91,6 +93,21 @@ public class AttractionApi {
             m.put("attraction", a);
             m.put("distance", Math.round(h.distance()));
             list.add(m);
+        }
+        return list;
+    }
+
+    /** ids=1,2,3 순서대로 기본 정보만. 없는 id 는 건너뛴다. 상세 API(외부 호출)를 쓰지 않는다. */
+    private List<Attraction> byIds(Request req) {
+        List<Attraction> list = new ArrayList<>();
+        for (int id : req.intSetParam("ids")) {
+            Attraction a = service.get(id);
+            if (a != null) {
+                list.add(a);
+            }
+            if (list.size() >= MAX_LIMIT) {
+                break;
+            }
         }
         return list;
     }
