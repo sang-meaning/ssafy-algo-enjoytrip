@@ -2,10 +2,10 @@
 # app.properties 는 .gitignore 에 들어 있어서 커밋되지 않는다.
 
 # 웹 서버
-server.port=8080
+server.port=8000
 
 # MySQL
-db.url=jdbc:mysql://localhost:3306/enjoytrip?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&rewriteBatchedStatements=true
+db.url=jdbc:mysql://localhost:3306/enjoytrip?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&rewriteBatchedStatements=true&createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
 db.user=ssafy
 db.password=ssafy
 

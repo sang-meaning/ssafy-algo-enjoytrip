@@ -8,9 +8,6 @@ build/
 # 로컬 설정 파일 (API 키, DB 비밀번호가 들어감)
 config/app.properties
 
-# 라이브러리 jar는 README 안내대로 받아서 lib/ 에 둔다
-lib/*.jar
-
 # IDE
 .metadata/
 .recommenders/

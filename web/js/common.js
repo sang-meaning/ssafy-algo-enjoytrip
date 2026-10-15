@@ -1,8 +1,8 @@
 // 두 페이지에서 같이 쓰는 함수 모음
 
-// 서버 주소. 같은 서버에서 화면을 열면 빈 문자열로 두면 된다.
-// VS Code Live Server 처럼 다른 포트에서 열 때는 'http://localhost:8080' 으로 바꾼다.
-const API_BASE = location.port === '8080' ? '' : 'http://localhost:8080';
+// 서버 주소. 자바 서버(localhost:8000)에서 화면을 열면 같은 주소를 쓴다.
+// VS Code Live Server(5500 포트)나 파일을 직접 열었을 때만 자바 서버 주소를 붙인다.
+const API_BASE = (location.protocol === 'file:' || location.port === '5500') ? 'http://localhost:8000' : '';
 
 // 관광타입별 이름과 색
 const TYPE_INFO = {
@@ -184,7 +184,7 @@ function showMapNotice(el, error) {
         ${error ? escapeHtml(error) + '<br>' : ''}
         지도를 보려면 <code>config/app.properties</code> 의 <code>kakao.js.key</code> 에<br>
         카카오 JavaScript 키를 넣고 서버를 다시 실행해 주세요.<br>
-        카카오 개발자 콘솔의 플랫폼 &gt; Web 에 <code>http://localhost:8080</code> 도메인을 등록해야 합니다.<br>
+        카카오 개발자 콘솔의 플랫폼 &gt; Web 에 <code>http://localhost:8000</code> 도메인을 등록해야 합니다.<br>
         지도 없이도 검색과 경로 만들기는 사용할 수 있습니다.
       </div>
     </div>`;

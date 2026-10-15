@@ -26,23 +26,28 @@
 - Java 17 이상 / STS (또는 Eclipse), VS Code
 - MySQL 8 / MySQL Workbench
 
-## 처음 실행할 때
+## 실행 방법
 
-1. MySQL JDBC 드라이버를 받아서 `lib/` 에 넣는다.
-   - https://repo.maven.apache.org/maven2/com/mysql/mysql-connector-j/8.4.0/mysql-connector-j-8.4.0.jar
-   - 파일 이름을 바꾸지 않는다. (`.classpath` 가 이 이름을 참조함)
-2. `config/app.properties.example` 을 `config/app.properties` 로 복사하고 DB 계정과 API 키를 채운다.
-   - `datagokr.key`: 공공데이터포털 인증키 (한국관광공사 국문 관광정보 서비스 활용신청 필요)
+1. MySQL 을 켜 둔다.
+2. `config/app.properties` 에 DB 계정과 키를 적는다. (없으면 `app.properties.example` 을 복사)
+   - `db.user`, `db.password`: MySQL 계정 (기본값 ssafy / ssafy)
+   - `datagokr.key`: 공공데이터포털 인증키
    - `kakao.js.key`: 카카오 JavaScript 키. 비워 두면 지도 없이 목록으로만 동작한다.
-     카카오 개발자 콘솔 > 앱 > 플랫폼 > Web 에 `http://localhost:8080` 을 등록해야 지도가 뜬다.
-3. STS에서 `File > Import > General > Existing Projects into Workspace` 로 이 폴더를 연다.
-4. MySQL Workbench 에서 `sql/schema.sql` 을 실행한다.
-5. `com.ssafy.enjoytrip.external.DataLoader` 를 실행해서 TourAPI 데이터를 DB 에 넣는다.
-   - 약 5만 건, API 호출 60회 정도, 2~3분 걸린다.
-   - 개발계정은 하루 1,000건 제한이 있으니 여러 번 돌리지 않는다. 다시 돌려도 중복 없이 덮어쓴다.
-6. `com.ssafy.enjoytrip.Main` 을 실행하고 브라우저에서 http://localhost:8080 을 연다.
+     카카오 개발자 콘솔 > 앱 > 플랫폼 > Web 에 `http://localhost:8000` 을 등록해야 지도가 뜬다.
+3. STS 에서 `File > Import > General > Existing Projects into Workspace` 로 이 폴더를 열고
+   `com.ssafy.enjoytrip.Main` 을 실행한다.
+4. 브라우저에서 http://localhost:8000 을 연다.
 
-실행 위치(작업 디렉터리)가 프로젝트 루트여야 `config/`, `web/` 폴더를 찾는다. STS 기본 설정이 그렇다.
+처음 실행하면 알아서 다음을 한다.
+
+- `enjoytrip` 데이터베이스와 테이블 생성 (`sql/schema.sql`, 이미 있으면 그대로 둠)
+- 관광지 테이블이 비어 있으면 TourAPI 에서 약 5만 건을 받아 저장 (2~3분, API 호출 약 60회)
+
+MySQL 드라이버(`lib/mysql-connector-j-8.4.0.jar`)는 저장소에 같이 들어 있다.
+데이터만 다시 받고 싶으면 `com.ssafy.enjoytrip.external.DataLoader` 를 따로 실행하면 된다.
+(공공데이터 개발계정은 하루 1,000건 제한이 있으니 여러 번 돌리지 않는다.)
+
+실행 위치(작업 디렉터리)가 프로젝트 루트여야 `config/`, `sql/`, `web/` 폴더를 찾는다. STS 기본 설정이 그렇다.
 
 ## 테스트와 성능 측정
 
@@ -81,7 +86,7 @@ JUnit 없이 main 메서드로 돈다. 실패하면 `[실패]` 줄이 찍히고 
 ```
 config/   설정 파일 (app.properties 는 커밋하지 않음)
 docs/     성능 측정 결과 등 문서
-lib/      외부 jar (커밋하지 않음)
+lib/      MySQL JDBC 드라이버
 sql/      DB 스키마
 src/      애플리케이션 소스
   algo/       알고리즘 (tsp, search, geo, route)

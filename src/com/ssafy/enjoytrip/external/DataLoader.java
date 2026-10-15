@@ -41,15 +41,23 @@ public class DataLoader {
             }
         }
 
-        DataLoader loader = new DataLoader(new TourApiClient());
+        new DataLoader(new TourApiClient()).loadAll(types);
+    }
+
+    /** 서버를 처음 켰는데 데이터가 비어 있을 때 Main 에서 호출한다 */
+    public void loadAll() throws Exception {
+        loadAll(DEFAULT_TYPES);
+    }
+
+    public void loadAll(int[] types) throws Exception {
         long start = System.currentTimeMillis();
 
-        int regions = loader.loadRegions();
+        int regions = loadRegions();
         System.out.println("법정동 코드 " + regions + "건 저장");
 
         int total = 0;
         for (int type : types) {
-            int saved = loader.loadAttractions(type);
+            int saved = loadAttractions(type);
             System.out.println("관광타입 " + type + ": " + saved + "건 저장");
             total += saved;
         }

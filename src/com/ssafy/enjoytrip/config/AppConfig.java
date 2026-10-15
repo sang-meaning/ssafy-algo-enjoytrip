@@ -18,6 +18,7 @@ import java.util.Properties;
 public final class AppConfig {
 
     private static final String DEFAULT_PATH = "config/app.properties";
+    private static final String EXAMPLE_PATH = "config/app.properties.example";
     private static AppConfig instance;
 
     private final Properties props = new Properties();
@@ -38,7 +39,13 @@ public final class AppConfig {
     public static synchronized AppConfig get() {
         if (instance == null) {
             String path = System.getProperty("app.config", DEFAULT_PATH);
-            instance = new AppConfig(Paths.get(path));
+            Path p = Paths.get(path);
+            // app.properties 를 아직 안 만들었으면 예시 파일 값으로라도 실행되게 한다
+            if (!Files.exists(p) && DEFAULT_PATH.equals(path) && Files.exists(Paths.get(EXAMPLE_PATH))) {
+                System.out.println("config/app.properties 가 없어서 app.properties.example 값으로 실행합니다.");
+                p = Paths.get(EXAMPLE_PATH);
+            }
+            instance = new AppConfig(p);
         }
         return instance;
     }
