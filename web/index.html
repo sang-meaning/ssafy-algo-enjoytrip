@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnjoyTrip - 관광지 탐색</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="header">
+    <a class="logo" href="index.html">EnjoyTrip</a>
+    <nav>
+      <a href="index.html" class="active">관광지 탐색</a>
+      <a href="plan.html">여행 경로 만들기 <span id="cartCount" class="muted"></span></a>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <aside class="side">
+      <div class="side-scroll">
+        <div class="search-box">
+          <input id="searchInput" type="text" placeholder="관광지 이름 검색 (초성도 가능: ㄱㅂㄱ)" autocomplete="off">
+        </div>
+
+        <div id="typeChips" class="chips"></div>
+
+        <div id="detail"></div>
+
+        <div class="section-title">
+          <span id="listTitle">관광지</span>
+          <small id="listCount"></small>
+        </div>
+        <ul id="list" class="list"></ul>
+      </div>
+    </aside>
+
+    <main class="map-wrap">
+      <div id="map"></div>
+      <div id="mapStatus" class="map-status" hidden></div>
+    </main>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script src="js/explore.js"></script>
+</body>
+</html>
