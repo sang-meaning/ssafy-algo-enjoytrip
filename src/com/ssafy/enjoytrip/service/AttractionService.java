@@ -147,15 +147,35 @@ public class AttractionService {
         return result;
     }
 
-    /** 지도 화면 영역 안의 관광지 (마커 표시용) */
+    /**
+     * 지도 화면 영역 안의 관광지 (마커 표시용).
+     *
+     * 순위대로 limit 개만 자르면 우선순위가 높은 타입(관광지, 문화시설)이 자리를 다 차지해서
+     * 여러 타입을 골라도 한 가지 색만 보이게 된다. 그래서 타입별로 나눈 뒤 번갈아 하나씩 담는다.
+     * 각 타입 안에서는 순위 순서를 지킨다.
+     */
     public List<Attraction> inBounds(double swLat, double swLng, double neLat, double neLng,
                                      Set<Integer> types, int limit) {
         int[] ids = grid.inBounds(swLat, swLng, neLat, neLng, typeFilter(types), Integer.MAX_VALUE);
-        // 칸 순서로 나온 결과를 순위 순으로 정렬해서 limit 만큼 자른다. idx 가 곧 순위다.
+        // 칸 순서로 나온 결과를 순위 순으로 정렬한다. idx 가 곧 순위다.
         Arrays.sort(ids);
+
+        Map<Integer, List<Integer>> byType = new LinkedHashMap<>();
+        for (int idx : ids) {
+            byType.computeIfAbsent(items.get(idx).contentTypeId(), k -> new ArrayList<>()).add(idx);
+        }
         List<Attraction> result = new ArrayList<>();
-        for (int i = 0; i < ids.length && i < limit; i++) {
-            result.add(items.get(ids[i]));
+        int round = 0;
+        boolean added = true;
+        while (result.size() < limit && added) {
+            added = false;
+            for (List<Integer> list : byType.values()) {
+                if (round < list.size() && result.size() < limit) {
+                    result.add(items.get(list.get(round)));
+                    added = true;
+                }
+            }
+            round++;
         }
         return result;
     }
@@ -194,7 +214,7 @@ public class AttractionService {
         Map<String, Object> extra = detailCache.get(contentId);
         if (extra == null && tourApi != null) {
             try {
-                TourApiClient.Page page = tourApi.call("detailCommon2", Map.of("contentId", String.valueOf(contentId)));
+                TourApiClient.Page page = tourApi.callQuick("detailCommon2", Map.of("contentId", String.valueOf(contentId)));
                 if (!page.items().isEmpty()) {
                     Map<String, Object> item = page.items().get(0);
                     extra = new LinkedHashMap<>();

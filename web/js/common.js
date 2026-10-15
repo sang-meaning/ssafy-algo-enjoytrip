@@ -216,3 +216,74 @@ function addToCart(contentId) {
   writeCart(ids);
   return ids.length;
 }
+
+// ------------------------------------------------------------ 관광지 정보 모달
+
+// 관광지 상세 정보를 모달로 띄운다.
+// actions: [{ label, primary, danger, onClick }] 버튼 목록. 버튼을 누르면 onClick 실행 후 모달을 닫는다.
+async function openAttractionModal(contentId, actions = []) {
+  closeAttractionModal();
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.innerHTML = '<div class="modal"><div class="modal-body muted">불러오는 중...</div></div>';
+  document.body.appendChild(backdrop);
+  backdrop.addEventListener('mousedown', (e) => {
+    if (e.target === backdrop) closeAttractionModal();
+  });
+
+  let d;
+  try {
+    d = await api('/api/attractions/' + contentId);
+  } catch (e) {
+    backdrop.querySelector('.modal').innerHTML = `<div class="modal-body">${escapeHtml(e.message)}</div>`;
+    return;
+  }
+  if (!document.body.contains(backdrop)) return; // 기다리는 사이 닫혔으면 그만
+
+  const a = d.attraction;
+  const buttons = actions.map((act, i) => `
+    <button class="btn ${act.primary ? 'primary' : ''} ${act.danger ? 'danger' : ''}" data-act="${i}">${escapeHtml(act.label)}</button>`).join('');
+  backdrop.querySelector('.modal').innerHTML = `
+    ${a.firstImage ? `<img src="${escapeHtml(a.firstImage)}" alt="">` : ''}
+    <div class="modal-body">
+      ${typeBadge(a.contentTypeId)}
+      <h3>${escapeHtml(a.title)}</h3>
+      <p class="muted">${escapeHtml(a.addr1 || '')} ${escapeHtml(a.addr2 || '')}</p>
+      ${a.tel ? `<p>전화 ${escapeHtml(a.tel)}</p>` : ''}
+      ${d.overview ? `<p class="overview">${escapeHtml(stripHtml(d.overview))}</p>` : ''}
+      ${homepageHtml(d.homepage)}
+    </div>
+    <div class="modal-actions">
+      ${buttons}
+      <button class="btn" data-act="close" style="margin-left:auto">닫기</button>
+    </div>`;
+  backdrop.querySelectorAll('[data-act]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const act = actions[Number(btn.dataset.act)];
+      closeAttractionModal();
+      if (act) act.onClick(a);
+    });
+  });
+}
+
+function closeAttractionModal() {
+  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeAttractionModal();
+});
+
+// 개요에 <br> 같은 태그가 섞여 오는 경우가 있다
+function stripHtml(html) {
+  return String(html).replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
+}
+
+// 홈페이지 값은 <a href="..."> 태그로 오기도 하고 주소만 오기도 한다
+function homepageHtml(raw) {
+  if (!raw) return '';
+  const m = /href="([^"]+)"/i.exec(raw);
+  const url = m ? m[1] : String(raw).trim();
+  if (!/^https?:\/\//i.test(url)) return '';
+  return `<p><a href="${escapeHtml(url)}" target="_blank" rel="noopener">홈페이지</a></p>`;
+}

@@ -59,6 +59,18 @@ public class TourApiClient {
      * @param params    serviceKey, MobileOS, MobileApp, _type 을 뺀 나머지 파라미터
      */
     public Page call(String operation, Map<String, String> params) throws IOException {
+        return call(operation, params, MAX_RETRY, Duration.ofSeconds(60));
+    }
+
+    /**
+     * 화면에서 사용자가 기다리는 호출용. 오래 붙잡지 않도록 제한 시간을 짧게, 재시도는 한 번만 한다.
+     * 실패하면 호출하는 쪽에서 기본 정보만 보여주면 된다.
+     */
+    public Page callQuick(String operation, Map<String, String> params) throws IOException {
+        return call(operation, params, 2, Duration.ofSeconds(5));
+    }
+
+    private Page call(String operation, Map<String, String> params, int maxRetry, Duration timeout) throws IOException {
         Map<String, String> all = new LinkedHashMap<>();
         all.put("MobileOS", "ETC");
         all.put("MobileApp", "EnjoyTrip");
@@ -71,17 +83,17 @@ public class TourApiClient {
             url.append('&').append(e.getKey()).append('=').append(encode(e.getValue()));
         }
 
-        String body = getWithRetry(url.toString());
+        String body = getWithRetry(url.toString(), maxRetry, timeout);
         return parsePage(body);
     }
 
-    private String getWithRetry(String url) throws IOException {
+    private String getWithRetry(String url, int maxRetry, Duration timeout) throws IOException {
         HttpRequest request = HttpRequest.newBuilder(URI.create(url))
-                .timeout(Duration.ofSeconds(60))
+                .timeout(timeout)
                 .GET()
                 .build();
         IOException last = null;
-        for (int attempt = 1; attempt <= MAX_RETRY; attempt++) {
+        for (int attempt = 1; attempt <= maxRetry; attempt++) {
             try {
                 HttpResponse<String> res = http.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
                 if (res.statusCode() == 200) {
@@ -94,7 +106,9 @@ public class TourApiClient {
                 Thread.currentThread().interrupt();
                 throw new IOException("요청이 중단되었습니다", e);
             }
-            sleep(1000L * attempt);
+            if (attempt < maxRetry) {
+                sleep(1000L * attempt);
+            }
         }
         throw last;
     }

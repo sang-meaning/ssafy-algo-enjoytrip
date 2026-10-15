@@ -76,12 +76,14 @@ public class Router implements HttpHandler {
                 send(ex, 404, error("없는 API 입니다: " + ex.getRequestURI().getPath()));
             }
         } catch (IllegalArgumentException e) {
-            send(ex, 400, error(e.getMessage()));
+            sendQuietly(ex, 400, error(e.getMessage()));
         } catch (NotFoundException e) {
-            send(ex, 404, error(e.getMessage()));
+            sendQuietly(ex, 404, error(e.getMessage()));
+        } catch (IOException e) {
+            // 응답을 보내는 중 브라우저가 연결을 끊은 경우 (페이지 이동, 새로고침). 할 일이 없다.
         } catch (Exception e) {
             e.printStackTrace();
-            send(ex, 500, error("서버 오류가 발생했습니다: " + e.getMessage()));
+            sendQuietly(ex, 500, error("서버 오류가 발생했습니다: " + e.getMessage()));
         } finally {
             ex.close();
         }
@@ -119,6 +121,14 @@ public class Router implements HttpHandler {
         ex.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
         ex.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
         ex.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type");
+    }
+
+    private static void sendQuietly(HttpExchange ex, int status, Object body) {
+        try {
+            send(ex, status, body);
+        } catch (IOException | IllegalStateException ignore) {
+            // 이미 응답 헤더를 보냈거나 연결이 끊긴 경우
+        }
     }
 
     static void send(HttpExchange ex, int status, Object body) throws IOException {

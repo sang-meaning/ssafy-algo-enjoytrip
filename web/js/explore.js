@@ -186,8 +186,8 @@ async function selectAttraction(contentId, moveMap) {
         <h3>${escapeHtml(a.title)}</h3>
         <p class="muted">${escapeHtml(a.addr1 || '')} ${escapeHtml(a.addr2 || '')}</p>
         ${a.tel ? `<p>전화 ${escapeHtml(a.tel)}</p>` : ''}
-        ${d.overview ? `<p class="overview">${escapeHtml(stripTags(d.overview))}</p>` : ''}
-        ${homepageLink(d.homepage)}
+        ${d.overview ? `<p class="overview">${escapeHtml(stripHtml(d.overview))}</p>` : ''}
+        ${homepageHtml(d.homepage)}
         <div style="display:flex; gap:6px; margin-top:10px">
           <button class="btn primary" id="addCart">경로에 담기</button>
           <a class="btn" href="plan.html">경로 만들러 가기</a>
@@ -214,20 +214,6 @@ async function selectAttraction(contentId, moveMap) {
     }
     showPopup(a);
   }
-}
-
-// 홈페이지 값은 <a href="..."> 태그로 오기도 하고 주소만 오기도 한다
-function homepageLink(raw) {
-  if (!raw) return '';
-  const m = /href="([^"]+)"/i.exec(raw);
-  const url = m ? m[1] : String(raw).trim();
-  if (!/^https?:\/\//i.test(url)) return '';
-  return `<p><a href="${escapeHtml(url)}" target="_blank" rel="noopener">홈페이지</a></p>`;
-}
-
-// 개요에 <br> 같은 태그가 섞여 오는 경우가 있다
-function stripTags(html) {
-  return String(html).replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
 }
 
 function updateCartCount() {

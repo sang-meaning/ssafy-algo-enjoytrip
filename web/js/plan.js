@@ -13,7 +13,6 @@ const state = {
   browseOverlays: [],
   routeOverlays: [],
   polyline: null,
-  popup: null,
   lastRoute: null,      // 저장할 때 쓰는 마지막 결과 { order, returnToStart, routeMode }
   lastRandom: null,     // 마지막 랜덤 요청 { baseIds, resultIds }
 };
@@ -116,7 +115,7 @@ function renderPicked(redrawMap = true) {
     $('picked').innerHTML = '<li class="muted">검색하거나 지도에서 관광지를 골라 추가하세요.</li>';
   } else {
     $('picked').innerHTML = state.picked.map((a, i) => `
-      <li>
+      <li data-id="${a.contentId}">
         <span class="num" style="${i === 0 && state.tab === 'random' ? 'background:#111827' : ''}">${i + 1}</span>
         ${thumbHtml(a)}
         <div class="info">
@@ -130,12 +129,32 @@ function renderPicked(redrawMap = true) {
         </div>
       </li>`).join('');
     $('picked').querySelectorAll('[data-remove]').forEach(b =>
-      b.addEventListener('click', () => removePicked(Number(b.dataset.remove))));
+      b.addEventListener('click', (e) => { e.stopPropagation(); removePicked(Number(b.dataset.remove)); }));
     $('picked').querySelectorAll('[data-first]').forEach(b =>
-      b.addEventListener('click', () => moveToFirst(Number(b.dataset.first))));
+      b.addEventListener('click', (e) => { e.stopPropagation(); moveToFirst(Number(b.dataset.first)); }));
+    $('picked').querySelectorAll('li[data-id]').forEach(li =>
+      li.addEventListener('click', () => showPickedInfo(Number(li.dataset.id))));
   }
   renderEndpointSelects();
   if (redrawMap) drawPickedOnMap();
+}
+
+// 이미 선택한 관광지 정보. 빼기 버튼을 같이 보여준다
+function showPickedInfo(contentId) {
+  openAttractionModal(contentId, [
+    { label: '경로에서 빼기', danger: true, onClick: () => removePicked(contentId) },
+  ]);
+}
+
+// 아직 선택하지 않은 관광지 정보. 추가 버튼을 같이 보여준다
+function showCandidateInfo(a) {
+  if (state.picked.some(p => p.contentId === a.contentId)) {
+    showPickedInfo(a.contentId);
+    return;
+  }
+  openAttractionModal(a.contentId, [
+    { label: '경로에 추가', primary: true, onClick: () => { addPicked(a); loadBounds(); } },
+  ]);
 }
 
 // 랜덤 경로는 첫 번째 관광지가 기준이라 순서를 바꿀 수 있게 한다
@@ -230,7 +249,7 @@ function renderResult(order, legs, total, returnToStart, meta) {
     ? `${meta.exact ? '최적 경로' : '근사 경로'} · ${meta.algorithm} · ${meta.elapsedMs.toFixed(1)}ms`
     : '저장된 순서';
   const stops = order.map((a, i) => `
-    <div class="stop">
+    <div class="stop" data-id="${a.contentId}">
       <span class="num">${i + 1}</span>
       <div class="info" style="min-width:0">
         <div class="title">${escapeHtml(a.title)}</div>
@@ -255,6 +274,8 @@ function renderResult(order, legs, total, returnToStart, meta) {
       </div>
     </div>`;
   $('saveBtn').addEventListener('click', savePlan);
+  $('result').querySelectorAll('.stop[data-id]').forEach(el =>
+    el.addEventListener('click', () => openAttractionModal(Number(el.dataset.id))));
   drawRoute(order, returnToStart);
 }
 
@@ -405,34 +426,13 @@ async function loadBounds() {
     el.className = 'marker-dot';
     el.style.background = (TYPE_INFO[a.contentTypeId] || {}).color || '#999';
     el.title = a.title;
-    el.addEventListener('click', () => showAddPopup(a));
+    el.addEventListener('click', () => showCandidateInfo(a));
     const o = new maps.CustomOverlay({ position: new maps.LatLng(a.latitude, a.longitude), content: el, yAnchor: 0.5 });
     o.setMap(map);
     return o;
   });
   $('mapStatus').hidden = list.length < 200;
   $('mapStatus').textContent = '관광지가 많아 추천순 200곳만 표시합니다. 지도를 확대해 보세요.';
-}
-
-function showAddPopup(a) {
-  const { maps, map } = state;
-  if (state.popup) state.popup.setMap(null);
-  const el = document.createElement('div');
-  el.className = 'map-popup';
-  el.innerHTML = `
-    <div class="t">${escapeHtml(a.title)}</div>
-    <div class="row">
-      <button class="btn small primary" data-act="add">경로에 추가</button>
-      <button class="btn small" data-act="close">닫기</button>
-    </div>`;
-  el.querySelector('[data-act="add"]').addEventListener('click', () => {
-    addPicked(a);
-    state.popup.setMap(null);
-    loadBounds();
-  });
-  el.querySelector('[data-act="close"]').addEventListener('click', () => state.popup.setMap(null));
-  state.popup = new maps.CustomOverlay({ position: new maps.LatLng(a.latitude, a.longitude), content: el, yAnchor: 1, zIndex: 10 });
-  state.popup.setMap(map);
 }
 
 // 선택한 관광지를 번호 핀으로 표시 (경로 생성 전)
@@ -469,6 +469,7 @@ function drawPins(list) {
     el.className = 'route-pin';
     el.textContent = i + 1;
     el.title = a.title;
+    el.addEventListener('click', () => showPickedInfo(a.contentId));
     const o = new maps.CustomOverlay({ position: new maps.LatLng(a.latitude, a.longitude), content: el, yAnchor: 0.5, zIndex: 5 });
     o.setMap(map);
     return o;
